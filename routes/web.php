@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\RegisterController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -22,3 +23,19 @@ Route::get('/greeting', function () {
 });
 
 Route::get('/product', [\App\Http\Controllers\ProductController::class, 'index']);
+Route::get('/product/{product:id}', [\App\Http\Controllers\ProductController::class, 'show']);
+
+
+
+Route::get('register', [RegisterController::class, 'create'])->middleware('guest');
+Route::post('register', [RegisterController::class, 'store'])->middleware('guest');
+
+Route::get('login', [SessionsController::class, 'create'])->middleware('guest');
+Route::post('login', [SessionsController::class, 'store'])->middleware('guest');
+
+Route::post('logout', [SessionsController::class, 'destroy'])->middleware('auth');
+
+// Admin Section
+Route::middleware('can:admin')->group(function () {
+    Route::resource('admin/product', \App\Http\Controllers\AdminProductController::class);
+});
