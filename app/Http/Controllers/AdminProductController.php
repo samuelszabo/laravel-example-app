@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Product;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class AdminProductController extends Controller
 {
@@ -17,7 +18,7 @@ class AdminProductController extends Controller
     public function index()
     {
         $products = Product::all();
-        return view('product/index', [
+        return view('admin.product.index', [
             'products' => $products,
         ]);
     }
@@ -29,7 +30,9 @@ class AdminProductController extends Controller
      */
     public function create()
     {
-        //
+        return view('admin.product.edit', [
+            'product' => null,
+        ]);
     }
 
     /**
@@ -56,9 +59,11 @@ class AdminProductController extends Controller
      * @param int $id
      * @return \Illuminate\Http\Response
      */
-    public function edit($id)
+    public function edit(Product $product)
     {
-        //
+        return view('admin.product.edit', [
+            'product' => $product,
+        ]);
     }
 
     /**
@@ -68,9 +73,17 @@ class AdminProductController extends Controller
      * @param int $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update(Product $product)
     {
-        //
+        $attributes = $this->validateProduct($product);
+
+        if ($attributes['thumbnail'] ?? false) {
+            $attributes['thumbnail'] = request()->file('thumbnail')->store('thumbnails');
+        }
+
+        $product->update($attributes);
+
+        return back()->with('success', 'Product Updated!');
     }
 
     /**
@@ -82,5 +95,15 @@ class AdminProductController extends Controller
     public function destroy($id)
     {
         //
+    }
+
+    protected function validateProduct(?Product $product = null): array
+    {
+        $product ??= new Product();
+
+        return request()->validate([
+            'name' => 'required',
+            'price' => 'required',
+        ]);
     }
 }
